@@ -3,6 +3,8 @@ import argparse
 from pathlib import Path
 import shutil
 
+TESTING_FLAG = Path("tests") / "test_flag2.png" # temp for fast testing
+
 parser = argparse.ArgumentParser(description="CTF file triage tool")
 parser.add_argument("-f", "--file", required=True, help="path to target file")
 #parser.add_argument("-F", "--format", required=True, help="flag format, if flag is 'xyz{abc123}' you can enter 'xyz'")
@@ -22,7 +24,8 @@ def with_corrected_extension(path: Path, correct_ext: str) -> Path:
     return path.with_suffix(correct_ext)
 
 
-original = Path(args.file)
+#original = Path(args.file)
+original = TESTING_FLAG
 working_copy = Path("scratch") / original.name
 Path("scratch").mkdir(exist_ok=True)
 shutil.copy(original, working_copy)
@@ -45,4 +48,4 @@ def delete_scratch_dir():
     print(f"Deleting: {scratch_path}")
     shutil.rmtree(scratch_path, ignore_errors=True) # Im so scared of this lol
 
-//delete_scratch_dir()
+delete_scratch_dir()
