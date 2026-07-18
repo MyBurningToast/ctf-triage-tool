@@ -172,6 +172,23 @@ def main():
         else:
             print("Flag not found")
 
+    elif args.command == "batch":
+        batch_dir = Path(args.dir)
+
+        with open("results.txt", "w") as results_file:
+            for item in sorted(batch_dir.iterdir()):
+                if not item.is_file():
+                    continue
+
+                print(f"=== {item.name} ===")
+                flags = run_one(item)
+
+                if flags:
+                    results_file.write(f"{item.name}: {flags}\n")
+                else:
+                    results_file.write(f"{item.name}: Flag not found\n")
+                results_file.flush()
+
 
 
 main()
