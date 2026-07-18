@@ -25,11 +25,15 @@ args = parser.parse_args()
 TARGET_FILE = Path(args.file) if args.command == "file" else None
 FLAG_PREFIX = args.format
 
-#TODO: add more types
 MIME_TO_EXTENSION = {
     "text/plain": ".txt",
     "image/png": ".png",
     "image/jpeg": ".jpg",
+    "image/gif": ".gif",
+    "image/bmp": ".bmp",
+    "application/pdf": ".pdf",
+    "audio/x-wav": ".wav",
+    "audio/basic": ".au",
 }
 
 ARCHIVE_MIME_TYPES = {
@@ -117,7 +121,7 @@ def process_file(path: Path, depth: int = 0) -> list[str]:
         )
         flags.extend(search_for_flag(result.stdout, FLAG_PREFIX))
 
-    if mime_type == "image/jpeg":
+    if mime_type in ("image/jpeg", "image/bmp", "audio/x-wav", "audio/basic"):
         # steghide writes extracted data to a file, not stdout
         steghide_out = working_copy.with_suffix(working_copy.suffix + ".steghide_out")
         result = subprocess.run( # try with an empty password
