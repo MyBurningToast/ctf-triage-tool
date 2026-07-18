@@ -109,27 +109,7 @@ def process_file(path: Path, depth: int = 0) -> list[str]:
 
     flags.extend(search_for_flag(result.stdout, FLAG_PREFIX))
 
-    try: #TODO: try to extract each file
-        result = subprocess.run(
-            ["binwalk", str(working_copy)],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-
-        binwalk_output = result.stdout
-        if binwalk_output is not None:
-            lines = binwalk_output.strip().splitlines()
-            # first 2 lines are always the header and a bunch of '-' dashes
-            result_lines = lines[2:]
-            embedded_data_found = len(result_lines) > 0
-
-            debug("Binwalk found embedded data", embedded_data_found)
-            if embedded_data_found:
-                debug("Binwalk output", "\n".join(result_lines))
-
-    except subprocess.TimeoutExpired: # if its a very large file (like a disk image)
-        debug("Binwalk", "Timed out and skipped")
+        
 
 
     # only extract if file is actually an archive type
