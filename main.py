@@ -25,6 +25,8 @@ args = parser.parse_args()
 TARGET_FILE = Path(args.file) if args.command == "file" else None
 FLAG_PREFIX = args.format
 
+REQUIRED_TOOLS = ["file", "strings", "exiftool", "zsteg", "steghide", "zbarimg", "7z"]
+
 MIME_TO_EXTENSION = {
     "text/plain": ".txt",
     "image/png": ".png",
@@ -46,6 +48,11 @@ ARCHIVE_MIME_TYPES = {
 
 copy_counter = itertools.count() # keeps working copies unique across recursion
 
+def check_tools():
+    missing = [t for t in REQUIRED_TOOLS if shutil.which(t) is None]
+    for tool in missing:
+        print(f"[!] {tool} not found on PATH")
+    return len(missing) == 0
 
 def search_for_flag(text: str, flag_prefix: str) -> list[str]:
     matches = []
@@ -180,6 +187,9 @@ def run_challenge(item: Path) -> list[str]:
     return list(set(flags))
 
 def main():
+    if not check_tools():
+        exit(1)
+
     if args.command == "file":
         flags = run_one(TARGET_FILE)
         print("--------------")
