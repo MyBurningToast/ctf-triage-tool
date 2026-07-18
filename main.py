@@ -202,6 +202,9 @@ def main():
                     results_file.write(f"{item.name}: Flag not found\n")
                 results_file.flush()
 
+        print("--------------")
+        print(Path("results.txt").read_text())
+
 
 
 main()
