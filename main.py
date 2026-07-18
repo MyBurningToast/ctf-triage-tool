@@ -152,24 +152,25 @@ def process_file(path: Path, depth: int = 0) -> list[str]:
     flags = list(set(flags)) # remove duplicates
     return flags
 
-def main():
+def run_one(path: Path) -> list[str]:
     Path(SCRATCH_DIR).mkdir(exist_ok=True)
 
-    all_flags = []
-
     try:
-        all_flags.extend(process_file(TARGET_FILE))
-        extract_dir = Path(SCRATCH_DIR) / "extracted"
-
+        flags = process_file(path)
     finally: # Clean up files after use
         scratch_path = Path(SCRATCH_DIR).resolve()
         shutil.rmtree(scratch_path, ignore_errors=True) # Im so scared of this lol
 
-    print("--------------")
-    if all_flags:
-        print(f"Flags found: {all_flags}")
-    else:
-        print("Flag not found")
+    return flags
+
+def main():
+    if args.command == "file":
+        flags = run_one(TARGET_FILE)
+        print("--------------")
+        if flags:
+            print(f"Flags found: {flags}")
+        else:
+            print("Flag not found")
 
 
 
