@@ -9,6 +9,7 @@ import itertools
 TESTING_FLAG = Path("tests") / "archive.zip" # temp for fast testing
 FLAG_PREFIX = "flag"
 SCRATCH_DIR = "scratch"
+MAX_DEPTH = 5
 
 parser = argparse.ArgumentParser(description="CTF file triage tool")
 #parser.add_argument("-f", "--file", required=True, help="path to target file")
@@ -64,8 +65,11 @@ def search_for_flag(text: str, flag_prefix: str) -> list[str]:
 def process_file(path: Path, depth: int = 0) -> list[str]:
     flags = []
 
-    #TODO: add a max depth and size. Just in case its a zip bomb or smthing
     print(f"[{depth}] scanning {path.name}")
+
+    if depth > MAX_DEPTH:
+        print(f"[{depth}] max depth hit, skipping {path.name}")
+        return flags
 
     working_copy = Path(SCRATCH_DIR) / f"{next(copy_counter)}_{path.name}"
     shutil.copy(path, working_copy)
