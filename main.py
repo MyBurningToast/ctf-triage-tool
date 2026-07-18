@@ -21,6 +21,15 @@ MIME_TO_EXTENSION = {
     "image/jpeg": ".jpg",
 }
 
+ARCHIVE_MIME_TYPES = {
+    "application/zip",
+    "application/gzip",
+    "application/x-tar",
+    "application/x-7z-compressed",
+    "application/x-rar-compressed",
+}
+
+
 debug_log = None # set in main
 def debug(label: str, value) -> None:
     line = f"[DEBUG] {label}: {value}"
@@ -123,21 +132,24 @@ def process_file(path: Path, depth: int = 0) -> list[str]:
         debug("Binwalk", "Timed out and skipped")
 
 
-    extract_dir = Path(SCRATCH_DIR) / f"extracted_{depth}" / working_copy.stem
-    result = subprocess.run( # 7zip will automaticly detect compression type
-        ["7z", "x", str(working_copy), f"-o{extract_dir}", "-y"],
-        capture_output=True, text=True, timeout=20
-    )
+    # only extract if file is actually an archive type
+    # 7z will try "extract" the internal structure of non archive files
+    if mime_type in ARCHIVE_MIME_TYPES:
+        extract_dir = Path(SCRATCH_DIR) / f"extracted_{depth}" / working_copy.stem
+        result = subprocess.run(
+            ["7z", "x", str(working_copy), f"-o{extract_dir}", "-y"],
+            capture_output=True, text=True, timeout=20
+        )
 
-    if result.returncode == 0 and extract_dir.exists():
-        debug("Extracted archive", extract_dir)
-        for extracted_file in extract_dir.rglob("*"): # recursively search the directory
-            if extracted_file.is_file():
-                flags.extend(process_file(extracted_file, depth + 1))
-    else:
-        debug("Not an archive or extraction failed", working_copy)
+        if result.returncode == 0 and extract_dir.exists():
+            debug("Extracted archive", extract_dir)
+            for extracted_file in extract_dir.rglob("*"): # recursively search the directory
+                if extracted_file.is_file():
+                    flags.extend(process_file(extracted_file, depth + 1))
+        else:
+            debug("Not an archive or extraction failed", working_copy)
 
-    return flags
+        return flags
 
 def main():
     global debug_log
