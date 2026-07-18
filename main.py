@@ -59,7 +59,6 @@ def search_for_flag(text: str, flag_prefix: str) -> list[str]:
 
     return matches
 
-flags_found = []
 def process_file(path: Path) -> list[str]:
     flags = []
 
@@ -97,7 +96,7 @@ def process_file(path: Path) -> list[str]:
         timeout=10
     )
 
-    flags_found.extend(search_for_flag(result.stdout, FLAG_PREFIX))
+    flags.extend(search_for_flag(result.stdout, FLAG_PREFIX))
 
     try: #TODO: try to extract each file
         result = subprocess.run(
