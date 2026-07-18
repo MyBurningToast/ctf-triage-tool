@@ -184,7 +184,7 @@ def main():
         flags = run_one(TARGET_FILE)
         print("--------------")
         if flags:
-            print(f"Flags found: {flags}")
+            print(f"Flags found: {', '.join(flags)}")
         else:
             print("Flag not found")
 
@@ -197,7 +197,7 @@ def main():
                 flags = run_challenge(item)
 
                 if flags:
-                    results_file.write(f"{item.name}: {flags}\n")
+                    results_file.write(f"{item.name}: {', '.join(flags)}\n")
                 else:
                     results_file.write(f"{item.name}: Flag not found\n")
                 results_file.flush()
