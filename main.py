@@ -5,7 +5,7 @@ import shutil
 import re
 import base64
 
-TESTING_FLAG = Path("tests") / "test_flag.txt" # temp for fast testing
+TESTING_FLAG = Path("tests") / "archive.zip" # temp for fast testing
 FLAG_PREFIX = "flag"
 SCRATCH_DIR = "scratch"
 
@@ -59,8 +59,10 @@ def search_for_flag(text: str, flag_prefix: str) -> list[str]:
 
     return matches
 
-def process_file(path: Path) -> list[str]:
+def process_file(path: Path, depth: int = 0) -> list[str]:
     flags = []
+
+    #TODO: add a max depth and size. Just in case its a zip bomb or smthing
 
     working_copy = Path(SCRATCH_DIR) / path.name
     shutil.copy(path, working_copy)
@@ -120,6 +122,21 @@ def process_file(path: Path) -> list[str]:
     except subprocess.TimeoutExpired: # if its a very large file (like a disk image)
         debug("Binwalk", "Timed out and skipped")
 
+
+    extract_dir = Path(SCRATCH_DIR) / f"extracted_{depth}" / working_copy.stem
+    result = subprocess.run( # 7zip will automaticly detect compression type
+        ["7z", "x", str(working_copy), f"-o{extract_dir}", "-y"],
+        capture_output=True, text=True, timeout=20
+    )
+
+    if result.returncode == 0 and extract_dir.exists():
+        debug("Extracted archive", extract_dir)
+        for extracted_file in extract_dir.rglob("*"): # recursively search the directory
+            if extracted_file.is_file():
+                flags.extend(process_file(extracted_file, depth + 1))
+    else:
+        debug("Not an archive or extraction failed", working_copy)
+
     return flags
 
 def main():
@@ -132,8 +149,7 @@ def main():
 
         try:
             all_flags.extend(process_file(TESTING_FLAG))
-
-
+            extract_dir = Path(SCRATCH_DIR) / "extracted"
 
         finally: # Clean up files after use
             scratch_path = Path(SCRATCH_DIR).resolve()
