@@ -21,6 +21,12 @@ MIME_TO_EXTENSION = {
     "image/jpeg": ".jpg",
 }
 
+debug_log = None # set in main
+def debug(label: str, value) -> None:
+    line = f"[DEBUG] {label}: {value}"
+    print(line)
+    debug_log.write(line + "\n")
+
 def search_for_flag(text: str, flag_prefix: str) -> list[str]:
     matches = []
     flag_regex = re.escape(flag_prefix) + r"\{.*?\}"
@@ -54,18 +60,11 @@ def search_for_flag(text: str, flag_prefix: str) -> list[str]:
     return matches
 
 flags_found = []
-with open("debug.log", "w") as debug_log:
-    def debug(label: str, value) -> None:
-        line = f"[DEBUG] {label}: {value}"
-        print(line)
-        debug_log.write(line + "\n")
+def process_file(path: Path) -> list[str]:
+    flags = []
 
-    #original = Path(args.file)
-    original = TESTING_FLAG
-    debug("Target file", original)
-    working_copy = Path(SCRATCH_DIR) / original.name
-    Path(SCRATCH_DIR).mkdir(exist_ok=True)
-    shutil.copy(original, working_copy)
+    working_copy = Path(SCRATCH_DIR) / path.name
+    shutil.copy(path, working_copy)
     debug("Working copy", working_copy)
 
     result = subprocess.run(
@@ -74,14 +73,13 @@ with open("debug.log", "w") as debug_log:
         text=True,
         timeout=10
     )
-
     mime_type = result.stdout.strip()
 
     if mime_type in MIME_TO_EXTENSION:
         debug("MIME type detected", mime_type)
         true_extension = MIME_TO_EXTENSION[mime_type]
         
-        current_extension = original.suffix
+        current_extension = path.suffix
         if true_extension != current_extension: # we need to rename it
             working_copy = working_copy.rename(working_copy.with_suffix(true_extension))
             debug("Renamed working copy to", working_copy)
@@ -123,17 +121,35 @@ with open("debug.log", "w") as debug_log:
     except subprocess.TimeoutExpired: # if its a very large file (like a disk image)
         debug("Binwalk", "Timed out and skipped")
 
+    return flags
 
-    # Clean up files after use
-    def delete_scratch_dir():
-        scratch_path = Path(SCRATCH_DIR).resolve()
-        debug("Deleting", scratch_path)
-        shutil.rmtree(scratch_path, ignore_errors=True) # Im so scared of this lol
+def main():
+    global debug_log
+    Path(SCRATCH_DIR).mkdir(exist_ok=True)
 
-    delete_scratch_dir()
+    with open("debug.log", "w") as debug_log:
 
-print("--------------")
-if (len(flags_found) >= 1):
-    print(f"Flags found: {flags_found}")
-else:
-    print("Flag not found")
+        all_flags = []
+
+        try:
+            all_flags.extend(process_file(TESTING_FLAG))
+
+
+
+        finally: # Clean up files after use
+            scratch_path = Path(SCRATCH_DIR).resolve()
+            debug("Deleting", scratch_path)
+            shutil.rmtree(scratch_path, ignore_errors=True) # Im so scared of this lol
+
+    print("--------------")
+    if all_flags:
+        print(f"Flags found: {all_flags}")
+    else:
+        print("Flag not found")
+
+
+
+
+
+
+main()
