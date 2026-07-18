@@ -30,7 +30,6 @@ ARCHIVE_MIME_TYPES = {
 }
 
 
-debug_log = None # set in main
 def search_for_flag(text: str, flag_prefix: str) -> list[str]:
     matches = []
     flag_regex = re.escape(flag_prefix) + r"\{.*?\}"
@@ -117,6 +116,7 @@ def process_file(path: Path, depth: int = 0) -> list[str]:
                 if extracted_file.is_file():
                     flags.extend(process_file(extracted_file, depth + 1))
 
+    flags = list(set(flags)) # remove duplicates
     return flags
 
 def main():
