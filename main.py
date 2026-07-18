@@ -167,6 +167,18 @@ def run_one(path: Path) -> list[str]:
 
     return flags
 
+def run_challenge(item: Path) -> list[str]:
+    if item.is_file():
+        return run_one(item)
+
+    # item is a folder, treat every file inside it as part of this one challenge
+    flags = []
+    for sub_item in sorted(item.rglob("*")):
+        if sub_item.is_file():
+            flags.extend(run_one(sub_item))
+
+    return list(set(flags))
+
 def main():
     if args.command == "file":
         flags = run_one(TARGET_FILE)
@@ -181,11 +193,8 @@ def main():
 
         with open("results.txt", "w") as results_file:
             for item in sorted(batch_dir.iterdir()):
-                if not item.is_file():
-                    continue
-
                 print(f"=== {item.name} ===")
-                flags = run_one(item)
+                flags = run_challenge(item)
 
                 if flags:
                     results_file.write(f"{item.name}: {flags}\n")
