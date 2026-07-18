@@ -6,15 +6,24 @@ import re
 import base64
 import itertools
 
-TESTING_FLAG = Path("tests") / "archive.zip" # temp for fast testing
-FLAG_PREFIX = "flag"
 SCRATCH_DIR = "scratch"
 MAX_DEPTH = 5
 
 parser = argparse.ArgumentParser(description="CTF file triage tool")
-#parser.add_argument("-f", "--file", required=True, help="path to target file")
-#parser.add_argument("-F", "--format", required=True, help="flag format, if flag is 'xyz{abc123}' you can enter 'xyz'")
+subparsers = parser.add_subparsers(dest="command", required=True)
+
+file_parser = subparsers.add_parser("file", help="triage a single file")
+file_parser.add_argument("-f", "--file", required=True, help="path to target file")
+file_parser.add_argument("-F", "--format", required=True, help="flag format, if flag is 'xyz{abc123}' you can enter 'xyz'")
+
+batch_parser = subparsers.add_parser("batch", help="triage every file in a folder")
+batch_parser.add_argument("-d", "--dir", required=True, help="folder of files to triage")
+batch_parser.add_argument("-F", "--format", required=True, help="flag format, if flag is 'xyz{abc123}' you can enter 'xyz'")
+
 args = parser.parse_args()
+
+TARGET_FILE = Path(args.file) if args.command == "file" else None
+FLAG_PREFIX = args.format
 
 #TODO: add more types
 MIME_TO_EXTENSION = {
@@ -149,7 +158,7 @@ def main():
     all_flags = []
 
     try:
-        all_flags.extend(process_file(TESTING_FLAG))
+        all_flags.extend(process_file(TARGET_FILE))
         extract_dir = Path(SCRATCH_DIR) / "extracted"
 
     finally: # Clean up files after use
