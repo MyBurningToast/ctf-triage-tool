@@ -4,6 +4,7 @@ from pathlib import Path
 import shutil
 import re
 import base64
+import itertools
 
 TESTING_FLAG = Path("tests") / "archive.zip" # temp for fast testing
 FLAG_PREFIX = "flag"
@@ -28,6 +29,8 @@ ARCHIVE_MIME_TYPES = {
     "application/x-7z-compressed",
     "application/x-rar-compressed",
 }
+
+copy_counter = itertools.count() # keeps working copies unique across recursion
 
 
 def search_for_flag(text: str, flag_prefix: str) -> list[str]:
@@ -64,7 +67,7 @@ def process_file(path: Path, depth: int = 0) -> list[str]:
     #TODO: add a max depth and size. Just in case its a zip bomb or smthing
     print(f"[{depth}] scanning {path.name}")
 
-    working_copy = Path(SCRATCH_DIR) / path.name
+    working_copy = Path(SCRATCH_DIR) / f"{next(copy_counter)}_{path.name}"
     shutil.copy(path, working_copy)
 
     result = subprocess.run(
