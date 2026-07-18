@@ -113,6 +113,14 @@ def process_file(path: Path, depth: int = 0) -> list[str]:
     debug("Running exiftool", "")
     flags.extend(search_for_flag(result.stdout, FLAG_PREFIX))
 
+    if mime_type == "image/png":
+        result = subprocess.run(
+            ["zsteg", str(working_copy)],
+            capture_output=True, text=True, timeout=10
+        )
+        debug("zsteg output", result.stdout)
+        flags.extend(search_for_flag(result.stdout, FLAG_PREFIX))
+
 
     # only extract if file is actually an archive type
     # 7z will try "extract" the internal structure of non archive files
