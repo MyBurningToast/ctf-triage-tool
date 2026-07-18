@@ -149,7 +149,7 @@ def process_file(path: Path, depth: int = 0) -> list[str]:
         else:
             debug("Not an archive or extraction failed", working_copy)
 
-        return flags
+    return flags
 
 def main():
     global debug_log
